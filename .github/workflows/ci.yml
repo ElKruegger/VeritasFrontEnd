@@ -1,0 +1,64 @@
+# Continuous integration for the Véritas frontend.
+#
+# Same rules as the backend CI: runs on every pull request into
+# developer/main and on every push to them. Deployment is not done here:
+# Vercel builds every branch itself (a preview URL per pull request) and
+# deploys main to production.
+
+name: CI
+
+on:
+  push:
+    branches: [main, developer]
+  pull_request:
+    branches: [main, developer]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, test & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # npm ci installs exactly what package-lock.json says (never updates
+      # it), so CI builds the same dependency tree as every other machine.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      # The build only needs the API address for the /api rewrite rule; it
+      # never calls the API, so the local default is fine here.
+      - name: Build
+        run: npm run build
+
+      # Fails on any High or Critical advisory in the dependency tree.
+      - name: Audit dependencies for known vulnerabilities
+        run: npm audit --audit-level=high

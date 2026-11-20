@@ -1,0 +1,3 @@
+# Normalize line endings: LF in the repository for every text file, so
+# Prettier's check gives the same answer on Windows and on the Linux CI.
+* text=auto eol=lf
