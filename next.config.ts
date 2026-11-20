@@ -61,6 +61,20 @@ const nextConfig: NextConfig = {
 
   // No "X-Powered-By: Next.js" header (same reason the API hides Kestrel).
   poweredByHeader: false,
+
+  // next/image only optimizes images from hosts listed here: product photos
+  // from Supabase Storage, and the API's placeholders until real
+  // photography is uploaded.
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+      { protocol: "https", hostname: "placehold.co" },
+    ],
+  },
 };
 
 export default nextConfig;

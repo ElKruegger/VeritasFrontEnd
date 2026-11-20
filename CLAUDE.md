@@ -14,11 +14,13 @@ Stack: Next.js 16 (App Router, Cache Components) · React 19 · TypeScript (stri
 
 ## Current state
 
-Done: project scaffold, /api rewrite to the backend, security headers, Prettier, Vitest, CI workflow, Dependabot.
+Done: project scaffold, /api rewrite to the backend, security headers, Prettier, Vitest, CI workflow, Dependabot · design foundation: tokens in `globals.css` (paper/ink/stone/line/mist/oxblood, Bodoni Moda + Jost), header with mobile menu, footer, editorial home (department index, new arrivals and brands from the API, streamed behind Suspense).
+
+Design rules: no gradients, no shadows, no rounded corners; hairlines and whitespace give structure; uppercase tracked labels at 11–12px; Bodoni for display only, Jost for everything functional; the oxblood accent only for Outlet/sale and errors; copy is specific and restrained (no "elevate your style"). Placeholder product images (placehold.co) render as a brand-initial tile until real photography exists (`product-image.tsx`).
 
 Roadmap, in order:
 
-1. Design foundation: typography, colour tokens, layout shell (header, footer, navigation).
+1. Real product photography (licensed or generated stills) uploaded to Supabase Storage.
 2. API layer: TypeScript types generated from the backend's OpenAPI document; a typed fetch client.
 3. Catalog: category page (filters, sort, paging from `GET /api/v1/products` and `/products/filters`), product page (gallery, variant picker, related products), with metadata for SEO and link previews.
 4. Deploy to Vercel (`API_URL` env var); backend cookies move to `SameSite=Lax` once same-origin.
