@@ -1,23 +1,11 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { ProductCard } from "@/components/product/product-card";
-import { apiGet } from "@/lib/api/server";
-import type {
-  PagedResult,
-  ProductFilters,
-  ProductListItem,
-} from "@/lib/api/types";
+import { getProductFilters, getProducts } from "@/lib/api/catalog";
+import type { ProductFilters, ProductListItem } from "@/lib/api/types";
 import { departmentHref, departments } from "@/lib/navigation";
-
-const departmentNotes: Record<string, string> = {
-  clothing: "Tailoring, shirting and knitwear in wool, linen and cashmere.",
-  footwear: "Goodyear-welted Oxfords and loafers, made to be resoled.",
-  watches: "Mechanical movements from Swiss and Japanese maisons.",
-  accessories: "Leather goods, eyewear and the finishing details.",
-  perfumes: "Signature fragrances, from fresh citrus to deep oud.",
-  outlet: "Previous-season pieces at reduced prices, while sizes last.",
-};
 
 export default function HomePage() {
   return (
@@ -61,7 +49,7 @@ export default function HomePage() {
                       {d.label}
                     </span>
                     <span className="mt-1 block text-sm text-stone">
-                      {departmentNotes[d.slug]}
+                      {d.note}
                     </span>
                   </span>
                 </Link>
@@ -80,7 +68,7 @@ export default function HomePage() {
             New arrivals
           </h2>
           <Link
-            href="/shop/new"
+            href={departmentHref("new")}
             className="text-[13px] underline-offset-[6px] hover:underline"
           >
             View all
@@ -119,12 +107,14 @@ export default function HomePage() {
 
 // Product data streams in at request time (see the Suspense boundaries
 // above): the rest of the page is prerendered and served instantly.
+// connection() keeps these reads out of the build: the API is not reachable
+// from CI, and a Render cold start during a deploy must not bake "unavailable"
+// into the prerendered page. The reads themselves are cached (lib/api/catalog).
 async function NewArrivals() {
+  await connection();
   let products: ProductListItem[];
   try {
-    const page = await apiGet<PagedResult<ProductListItem>>(
-      "/products?sort=newest&pageSize=4",
-    );
+    const page = await getProducts({ Sort: "newest", PageSize: 4 });
     products = page.items;
   } catch {
     return (
@@ -144,9 +134,10 @@ async function NewArrivals() {
 }
 
 async function Houses() {
+  await connection();
   let filters: ProductFilters;
   try {
-    filters = await apiGet<ProductFilters>("/products/filters");
+    filters = await getProductFilters({});
   } catch {
     return null;
   }

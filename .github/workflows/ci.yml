@@ -48,6 +48,14 @@ jobs:
       - name: Formatting
         run: npm run format:check
 
+      # src/lib/api/schema.d.ts must be exactly what openapi-typescript
+      # generates from the committed openapi/veritas-api.json: nobody edits
+      # the types by hand, and nobody forgets to regenerate them.
+      - name: API types are up to date
+        run: |
+          npm run api:types
+          git diff --exit-code -- src/lib/api/schema.d.ts
+
       - name: Type check
         run: npm run typecheck
 
