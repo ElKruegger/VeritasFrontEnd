@@ -8,6 +8,18 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+
+    ignore:
+      # The Node types must match the Node that runs the app (24, see .nvmrc
+      # and "engines"): newer types let the compiler accept APIs that don't
+      # exist at runtime. They move with the next Node upgrade, not before.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # eslint-config-next pulls in eslint-plugin-react, -import and -jsx-a11y,
+      # which only declare support up to ESLint 9. Revisit when they do.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+
     groups:
       # One PR for Next.js and React together: they are released in step.
       next-react:
