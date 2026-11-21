@@ -13,7 +13,7 @@ The storefront of **Véritas**, a luxury menswear and lifestyle e-commerce platf
 | Styling      | Tailwind CSS 4                                                              |
 | Data         | Server Components for catalog pages, TanStack Query for interactive data    |
 | Client state | Zustand                                                                     |
-| Forms        | React Hook Form + Zod                                                       |
+| Forms        | Zod (validation mirrors the API's rules)                                    |
 | Tests        | Vitest + Testing Library (unit/component), Playwright (end-to-end, planned) |
 | Hosting      | Vercel                                                                      |
 
@@ -25,6 +25,29 @@ Browser ──► Vercel (Next.js) ──/api/* rewrite──► Render (ASP.NET
 
 The browser only ever talks to the storefront's own domain. Requests to `/api/*` are proxied by Next.js to the API, so for the browser the API is same-origin: the httpOnly auth cookies are first-party and work in every browser, including Safari, which blocks third-party cookies.
 
+### Typed API contract
+
+The API's types are never written by hand. The backend publishes an OpenAPI document; a snapshot of it is committed in [`openapi/veritas-api.json`](openapi/veritas-api.json), and [openapi-typescript](https://openapi-ts.dev) turns it into `src/lib/api/schema.d.ts`. Every API call goes through [openapi-fetch](https://openapi-ts.dev/openapi-fetch/), so paths, query parameters and response bodies are checked by the compiler: when a backend DTO changes, `npm run api:sync` refreshes the snapshot and the build points at every page that has to follow. CI fails if the generated types and the snapshot disagree.
+
+### Catalog pages
+
+| Route             | Rendering                                                                                                                     |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `/`               | Prerendered shell; new arrivals and designers stream in                                                                       |
+| `/shop/[slug]`    | Shell prerendered per department; products filtered by designer, size, stock and price, with sort and paging — all in the URL |
+| `/product/[slug]` | Gallery, size picker, related products; per-product metadata and schema.org `Product` data                                    |
+| `/search`         | Search by product or designer                                                                                                 |
+
+API reads are cached on the server (`"use cache"` with short lifetimes), so popular pages don't hit the API on every visit.
+
+### Accounts
+
+`/account/register`, `/account/login` and `/account` (details and sign-out). The API keeps the session in `httpOnly` cookies that JavaScript can't read; the storefront never sees a token.
+
+- **Silent renewal.** The access token lives 15 minutes. When a call comes back `401`, the browser client asks for a new pair of tokens once and repeats the call. Refreshes are serialized, within a tab and across tabs (Web Locks), because the API treats a reused refresh token as theft and revokes every session.
+- **Validation twice.** Zod schemas mirror the API's rules, so most mistakes are caught before a request is sent. The API still validates everything, and its errors land on the same fields.
+- **Safe return path.** `?next=` only accepts paths on this site, so the sign-in page can't be used as an open redirect.
+
 ## Getting started
 
 Prerequisites: Node.js 24 (see `.nvmrc`) and the backend running locally (`dotnet run --project LuxuryStore-Backend --launch-profile http`, or its `docker compose` setup).
@@ -33,6 +56,7 @@ Prerequisites: Node.js 24 (see `.nvmrc`) and the backend running locally (`dotne
 npm install
 cp .env.example .env.local   # adjust API_URL if the backend runs elsewhere
 npm run dev                  # http://localhost:3000
+npm run api:sync             # after a backend DTO change (API running)
 ```
 
 ## Quality checks
@@ -49,4 +73,15 @@ All of them run in the [CI workflow](.github/workflows/ci.yml) on every pull req
 
 ## Deployment
 
-Vercel builds every branch: each pull request gets its own preview URL, and `main` is deployed to production. The only required environment variable is `API_URL`, the base URL of the deployed API; the build fails on Vercel when it is missing.
+Vercel builds every branch: each pull request gets its own preview URL, and `main` is deployed to production. Environment variables of the Vercel project:
+
+| Variable                  | Purpose                                                                                                                                |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `API_URL`                 | Base URL of the deployed API (required: the build fails on Vercel without it)                                                          |
+| `STOREFRONT_PROXY_SECRET` | Same value as on the API. Lets the API rate-limit login attempts per visitor instead of per storefront server                          |
+| `SITE_URL`                | Optional: the public address once on a custom domain. Defaults to the Vercel production domain; used for canonical and Open Graph URLs |
+| `VERITAS_API_TIMEOUT_MS`  | Optional: how long pages wait for the API (default 10000)                                                                              |
+
+### How the API sees the visitor
+
+Requests to `/api/*` are relayed by `src/proxy.ts`, which tells the API the visitor's IP (as reported by Vercel's edge) and proves it is the relay with `STOREFRONT_PROXY_SECRET`. Copies of these headers sent by a browser are dropped, and the API ignores the IP without the secret.

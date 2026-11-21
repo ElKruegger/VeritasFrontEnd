@@ -29,10 +29,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -47,6 +47,14 @@ jobs:
 
       - name: Formatting
         run: npm run format:check
+
+      # src/lib/api/schema.d.ts must be exactly what openapi-typescript
+      # generates from the committed openapi/veritas-api.json: nobody edits
+      # the types by hand, and nobody forgets to regenerate them.
+      - name: API types are up to date
+        run: |
+          npm run api:types
+          git diff --exit-code -- src/lib/api/schema.d.ts
 
       - name: Type check
         run: npm run typecheck

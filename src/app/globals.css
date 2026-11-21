@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Véritas design tokens.
+ *
+ * Paper and ink rather than white and black: a warm off-white page and a
+ * soft near-black read like printed stock, not a screen. One accent only
+ * (oxblood), reserved for sale prices and errors. No gradients, no shadows,
+ * square corners: structure comes from hairlines and whitespace.
+ */
+@theme {
+  --color-paper: #f7f5f0;
+  --color-ink: #161513;
+  --color-stone: #6b675f;
+  --color-line: #dcd8ce;
+  --color-mist: #ebe8e1;
+  --color-oxblood: #7a2e22;
+
+  --font-display: var(--font-bodoni), "Didot", "Bodoni 72", serif;
+  --font-sans: var(--font-jost), "Futura", "Helvetica Neue", sans-serif;
+
+  /* Small uppercase labels (brand names, section kickers) need air. */
+  --tracking-label: 0.14em;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    font-family: var(--font-sans);
+  }
+
+  /* Keyboard focus is always visible, never removed. */
+  :focus-visible {
+    outline: 1px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
 }
