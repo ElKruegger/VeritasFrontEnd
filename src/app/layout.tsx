@@ -4,6 +4,7 @@ import { Bodoni_Moda, Jost } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Providers } from "@/components/providers";
+import { siteUrl } from "@/lib/site-url";
 
 import "./globals.css";
 
@@ -22,6 +23,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
+  // Relative canonical and Open Graph URLs in every page resolve against it.
+  metadataBase: siteUrl(),
   title: {
     default: "Véritas — Menswear, watches and fragrance",
     template: "%s · Véritas",
