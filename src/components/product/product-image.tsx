@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 type ProductImageProps = {
-  src: string | null;
+  src: string | null | undefined;
   alt: string;
   brandName: string;
   sizes: string;
