@@ -14,7 +14,7 @@ Stack: Next.js 16 (App Router, Cache Components) · React 19 · TypeScript (stri
 
 ## Current state
 
-Done: project scaffold, /api rewrite to the backend, security headers, Prettier, Vitest, CI workflow, Dependabot · design foundation: tokens in `globals.css` (paper/ink/stone/line/mist/oxblood, Bodoni Moda + Jost), header with mobile menu, footer, editorial home · API layer: types generated from the backend's OpenAPI document (`openapi/veritas-api.json` → `src/lib/api/schema.d.ts`), typed client (openapi-fetch), cached catalog reads (`src/lib/api/catalog.ts`) · catalog: `/shop/[slug]` (departments + `new`; designer, size, stock and price filters, sort and paging, all in the URL), `/product/[slug]` (gallery, size picker, related products, metadata and schema.org JSON-LD), `/search`, 404 page · accounts: `/account/login`, `/account/register` (`?next=` return path), `/account` (details, sign out), session in the header and mobile menu, silent token refresh.
+Done: project scaffold, /api rewrite to the backend, security headers, Prettier, Vitest, CI workflow, Dependabot · design foundation: tokens in `globals.css` (paper/ink/stone/line/mist/oxblood, Bodoni Moda + Jost), header with mobile menu, footer, editorial home · API layer: types generated from the backend's OpenAPI document (`openapi/veritas-api.json` → `src/lib/api/schema.d.ts`), typed client (openapi-fetch), cached catalog reads (`src/lib/api/catalog.ts`) · catalog: `/shop/[slug]` (departments + `new`; designer, size, stock and price filters, sort and paging, all in the URL), `/product/[slug]` (gallery, size picker, related products, metadata and schema.org JSON-LD), `/search`, 404 page · accounts: `/account/login`, `/account/register` (`?next=` return path), `/account` (details, sign out), session in the header and mobile menu, silent token refresh · deploy-ready: `src/proxy.ts` relays the visitor IP to the API with a shared secret, `metadataBase` from `SITE_URL`/Vercel, API calls time out (`VERITAS_API_TIMEOUT_MS`).
 
 Design rules: no gradients, no shadows, no rounded corners; hairlines and whitespace give structure; uppercase tracked labels at 11–12px; Bodoni for display only, Jost for everything functional; the oxblood accent only for Outlet/sale and errors; copy is specific and restrained (no "elevate your style"). Placeholder product images (placehold.co) render as a brand-initial tile until real photography exists (`product-image.tsx`).
 
@@ -22,7 +22,7 @@ Roadmap, in order:
 
 1. Bag (backend first), then checkout (addresses, orders, Stripe), then order history and password reset.
 2. Real product photography (licensed or generated stills) uploaded to Supabase Storage.
-3. Deploy to Vercel (`API_URL` env var, `FRONTEND_URL` on the API for the origin check, the client-IP check in the backend roadmap, `metadataBase` for absolute canonical/OG URLs).
+3. Deploy to Vercel: create the project and set `API_URL` and `STOREFRONT_PROXY_SECRET` (see README > Deployment); `FRONTEND_URL` on the API.
 4. Playwright E2E in CI, Lighthouse scores in the README.
 
 ## Commands

@@ -73,4 +73,15 @@ All of them run in the [CI workflow](.github/workflows/ci.yml) on every pull req
 
 ## Deployment
 
-Vercel builds every branch: each pull request gets its own preview URL, and `main` is deployed to production. The only required environment variable is `API_URL`, the base URL of the deployed API; the build fails on Vercel when it is missing.
+Vercel builds every branch: each pull request gets its own preview URL, and `main` is deployed to production. Environment variables of the Vercel project:
+
+| Variable                  | Purpose                                                                                                                                |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `API_URL`                 | Base URL of the deployed API (required: the build fails on Vercel without it)                                                          |
+| `STOREFRONT_PROXY_SECRET` | Same value as on the API. Lets the API rate-limit login attempts per visitor instead of per storefront server                          |
+| `SITE_URL`                | Optional: the public address once on a custom domain. Defaults to the Vercel production domain; used for canonical and Open Graph URLs |
+| `VERITAS_API_TIMEOUT_MS`  | Optional: how long pages wait for the API (default 10000)                                                                              |
+
+### How the API sees the visitor
+
+Requests to `/api/*` are relayed by `src/proxy.ts`, which tells the API the visitor's IP (as reported by Vercel's edge) and proves it is the relay with `STOREFRONT_PROXY_SECRET`. Copies of these headers sent by a browser are dropped, and the API ignores the IP without the secret.
