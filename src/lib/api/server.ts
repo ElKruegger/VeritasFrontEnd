@@ -16,9 +16,28 @@ function apiBaseUrl(): string {
   return (process.env.API_URL ?? DEFAULT_API_URL).trim().replace(/\/+$/, "");
 }
 
+// How long a page waits for the API before giving up. Without a limit a hung
+// API (a paused process, a stuck database connection) holds the page open
+// until Next.js aborts the render about a minute later. With one, the page
+// shows its "unavailable right now" message after a few seconds. Raise it
+// with VERITAS_API_TIMEOUT_MS if the API sleeps when idle (free hosting
+// tiers) and its cold start takes longer than this. Namespaced on purpose:
+// a bare API_TIMEOUT_MS is already used by other tools' environments.
+const DEFAULT_TIMEOUT_MS = 10_000;
+
+export function apiTimeoutMs(value: string | undefined): number {
+  const ms = Number(value);
+  return Number.isInteger(ms) && ms > 0 ? ms : DEFAULT_TIMEOUT_MS;
+}
+
+const timeoutMs = apiTimeoutMs(process.env.VERITAS_API_TIMEOUT_MS);
+
 export const api = createClient<paths>({
   baseUrl: apiBaseUrl(),
   headers: { Accept: "application/json" },
+  // A fresh signal per request: the limit counts from each call's start.
+  fetch: (request) =>
+    fetch(request, { signal: AbortSignal.timeout(timeoutMs) }),
 });
 
 export class ApiError extends Error {
