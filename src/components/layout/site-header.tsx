@@ -1,9 +1,10 @@
 import Link from "next/link";
 
+import { AccountLink } from "@/components/layout/account-link";
 import { departmentHref, departments } from "@/lib/navigation";
 
-// Server Component: the header is identical for everyone until accounts and
-// the bag exist, so it is part of the prerendered shell. The mobile menu is a
+// Server Component, part of the prerendered shell. The only per-person part,
+// the account link, is a small client island that fills in after load. The mobile menu is a
 // native <details> element: it opens and closes without any JavaScript.
 //
 // Layout: wordmark centred on its own row, departments on a row below (from
@@ -40,6 +41,15 @@ export function SiteHeader() {
                   </li>
                 ))}
               </ul>
+              {/* The header row has no room for it on small screens. */}
+              <ul className="mt-6 space-y-3 border-t border-line pt-6 text-[13px] sm:hidden">
+                <li>
+                  <AccountLink />
+                </li>
+                <li>
+                  <Link href="/search">Search</Link>
+                </li>
+              </ul>
             </nav>
           </details>
 
@@ -61,12 +71,7 @@ export function SiteHeader() {
 
         <ul className="flex justify-end gap-5 text-[13px]">
           <li className="hidden sm:block">
-            <Link
-              href="/account"
-              className="underline-offset-[6px] hover:underline"
-            >
-              Account
-            </Link>
+            <AccountLink className="underline-offset-[6px] hover:underline" />
           </li>
           <li>
             <Link
