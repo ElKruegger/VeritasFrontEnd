@@ -13,7 +13,7 @@ The storefront of **Véritas**, a luxury menswear and lifestyle e-commerce platf
 | Styling      | Tailwind CSS 4                                                              |
 | Data         | Server Components for catalog pages, TanStack Query for interactive data    |
 | Client state | Zustand                                                                     |
-| Forms        | React Hook Form + Zod                                                       |
+| Forms        | Zod (validation mirrors the API's rules)                                    |
 | Tests        | Vitest + Testing Library (unit/component), Playwright (end-to-end, planned) |
 | Hosting      | Vercel                                                                      |
 
@@ -39,6 +39,14 @@ The API's types are never written by hand. The backend publishes an OpenAPI docu
 | `/search`         | Search by product or designer                                                                                                 |
 
 API reads are cached on the server (`"use cache"` with short lifetimes), so popular pages don't hit the API on every visit.
+
+### Accounts
+
+`/account/register`, `/account/login` and `/account` (details and sign-out). The API keeps the session in `httpOnly` cookies that JavaScript can't read; the storefront never sees a token.
+
+- **Silent renewal.** The access token lives 15 minutes. When a call comes back `401`, the browser client asks for a new pair of tokens once and repeats the call. Refreshes are serialized, within a tab and across tabs (Web Locks), because the API treats a reused refresh token as theft and revokes every session.
+- **Validation twice.** Zod schemas mirror the API's rules, so most mistakes are caught before a request is sent. The API still validates everything, and its errors land on the same fields.
+- **Safe return path.** `?next=` only accepts paths on this site, so the sign-in page can't be used as an open redirect.
 
 ## Getting started
 

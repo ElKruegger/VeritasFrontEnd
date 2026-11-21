@@ -15,3 +15,4 @@ export type ProductListItem = Schemas["ProductListItemDto"];
 export type ProductPage = Schemas["PagedResultOfProductListItemDto"];
 export type ProductFilters = Schemas["ProductFiltersDto"];
 export type ProductSort = Schemas["ProductSort"];
+export type User = Schemas["UserDto"];
